@@ -1,11 +1,12 @@
 import { Schema } from 'mongoose';
 import { ViewGroup } from '../libs/enums/view.enum';
+import { LikeGroup } from '../libs/enums/like.enum';
 
 const LikeSchema = new Schema(
 	{
 		likeGroup: {
 			type: String,
-			enum: ViewGroup,
+			enum: LikeGroup,
 			required: true,
 		},
 
@@ -13,7 +14,7 @@ const LikeSchema = new Schema(
 			type: Schema.Types.ObjectId,
 			required: true,
 		},
-		
+
 		memberId: {
 			type: Schema.Types.ObjectId,
 			required: true,
