@@ -65,6 +65,10 @@ const MemberSchema = new Schema(
 			type: Number,
 			default: 0,
 		},
+		memberPoints: {
+			type: Number,
+			default: 0,
+		},
 		memberViews: {
 			type: Number,
 			default: 0,
