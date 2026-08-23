@@ -10,6 +10,7 @@ import {
 	AgentsInquiry,
 	LoginInput,
 	MemberInput,
+	MembersInquiry,
 } from '../../libs/dto/member/member.input';
 import { Member, Members } from '../../libs/dto/member/member';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -85,5 +86,24 @@ export class MemberResolver {
 		console.log('Query: getAgents');
 
 		return this.memberService.getAgents(memberId, input);
+	}
+
+	// ADMIN
+	@Roles(MemberType.ADMIN)
+	@UseGuards(RolesGuard)
+	@Query(() => Members)
+	public async getAllMembersByAdmin(
+		@Args('input') input: MembersInquiry,
+	): Promise<Members> {
+		return await this.memberService.getAllMembersByAdmin(input);
+	}
+
+	@Roles(MemberType.ADMIN)
+	@UseGuards(RolesGuard)
+	@Mutation(() => Member)
+	public async updateMemberByAdmin(@Args('input') input: MemberUpdate): Promise<Member> {
+		console.log('Mutation: updateMemberByAdmin');
+
+		return await this.memberService.updateMemberByAdmin(input);
 	}
 }
