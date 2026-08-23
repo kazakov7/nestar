@@ -1,14 +1,23 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Member } from '../../libs/dto/member/member';
-import { LoginInput, MemberInput } from '../../libs/dto/member/member.input';
-import { MemberStatus } from '../../libs/enums/member.enum';
+import { Member, Members } from '../../libs/dto/member/member';
+import {
+	AgentsInquiry,
+	LoginInput,
+	MemberInput,
+} from '../../libs/dto/member/member.input';
+import { MemberStatus, MemberType } from '../../libs/enums/member.enum';
 import { Message } from '../../libs/enums/common.enum';
 import { AuthService } from '../auth/auth.service';
 import { T } from '../../libs/types/common';
 import { ViewService } from '../view/view.service';
 import { ViewGroup } from '../../libs/enums/view.enum';
+import { Direction } from '../../libs/enums/comment.enum';
 
 @Injectable()
 export class MemberService {
@@ -77,7 +86,10 @@ export class MemberService {
 		result.accessToken = await this.authService.createToken(result);
 		return result;
 	}
-	public async getMember(memberId: Types.ObjectId, targetId: Types.ObjectId): Promise<Member> {
+	public async getMember(
+		memberId: Types.ObjectId,
+		targetId: Types.ObjectId,
+	): Promise<Member> {
 		const search: T = {
 			_id: targetId,
 			memberStatus: {
@@ -106,5 +118,54 @@ export class MemberService {
 		}
 
 		return result;
+	}
+
+	public async getAgents(
+		memberId: Types.ObjectId,
+		input: AgentsInquiry,
+	): Promise<Members> {
+		const { text } = input.search;
+
+		const match: T = {
+			memberType: MemberType.AGENT,
+			memberStatus: MemberStatus.ACTIVE,
+		};
+
+		const sort: T = {
+			[input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
+		};
+
+		if (text)
+			match.memberNick = {
+				$regex: new RegExp(text, 'i'),
+			};
+
+		console.log('match:', match);
+
+		const result = await this.memberModel
+			.aggregate([
+				{ $match: match },
+				{ $sort: sort },
+				{
+					$facet: {
+						list: [
+							{
+								$skip: (input.page - 1) * input.limit,
+							},
+							{
+								$limit: input.limit,
+							},
+						],
+						metaCounter: [{ $count: 'total' }],
+					},
+				},
+			])
+			.exec();
+
+		console.log('result:', result);
+
+		if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+		return result[0];
 	}
 }
