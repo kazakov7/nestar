@@ -49,8 +49,15 @@ export class MemberService {
 		return response;
 	}
 
-	public async updateMember(): Promise<string> {
-		return 'updateMember expecuted';
+	public async updateMember(memberId, input): Promise<Member> {
+		const result = await this.memberModel
+			.findOneAndUpdate({ _id: memberId, memberStatus: MemberStatus.ACTIVE }, input, { new: true })
+			.exec();
+
+		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+		result.accessToken = await this.authService.createToken(result);
+		return result;
 	}
 	public async getMember(): Promise<string> {
 		return 'get member executed';
