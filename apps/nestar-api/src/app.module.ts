@@ -15,7 +15,7 @@ import { T } from './libs/types/common';
 		GraphQLModule.forRoot({
 			driver: ApolloDriver,
 			playground: true,
-			uplods: false,
+			uploads: false,
 			autoSchemaFile: true,
 			formatError: (error: T) => {
 				const graphQlFormattedError = {
@@ -23,7 +23,9 @@ import { T } from './libs/types/common';
 						code: error?.extensions?.code,
 					},
 					message:
-						error?.extensions?.exception?.response?.message || error?.extensions?.response?.message || error?.message,
+						error?.extensions?.exception?.response?.message ||
+						error?.extensions?.response?.message ||
+						error?.message,
 				};
 				console.log('graphQl server error', graphQlFormattedError);
 				return graphQlFormattedError;
