@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { LoggingInterceptor } from './libs/interceptors/Logging.interceptor';
 import { graphqlUploadExpress } from 'graphql-upload';
-
 import * as express from 'express';
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);

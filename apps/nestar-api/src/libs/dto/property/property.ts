@@ -5,6 +5,7 @@ import {
 	PropertyStatus,
 	PropertyType,
 } from '../../enums/property.enum';
+import { Member, TotalCounter } from '../member/member';
 
 @ObjectType()
 export class Property {
@@ -82,4 +83,15 @@ export class Property {
 
 	@Field(() => String, { nullable: true })
 	accessToken?: string;
+
+	@Field(() => Member)
+	memberData!: Member;
+}
+@ObjectType()
+export class Properties {
+	@Field(() => [Property])
+	list!: Property[];
+
+	@Field(() => [TotalCounter], { nullable: true })
+	metaCounter?: TotalCounter[];
 }
