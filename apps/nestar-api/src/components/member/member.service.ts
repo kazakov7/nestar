@@ -89,7 +89,7 @@ export class MemberService {
 		return result;
 	}
 	public async getMember(
-		memberId: Types.ObjectId,
+		memberId: Types.ObjectId | null,
 		targetId: Types.ObjectId,
 	): Promise<Member> {
 		const search: T = {
