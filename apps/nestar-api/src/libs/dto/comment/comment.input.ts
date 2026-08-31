@@ -19,7 +19,7 @@ export class CommentInput {
 	@Field(() => String)
 	commentRefId!: Types.ObjectId;
 
-	memberId?: ObjectId;
+	memberId?: Types.ObjectId;
 }
 
 @InputType()

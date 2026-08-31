@@ -18,8 +18,9 @@ import { AuthService } from '../auth/auth.service';
 import { StatisticModifier, T } from '../../libs/types/common';
 import { ViewService } from '../view/view.service';
 import { ViewGroup } from '../../libs/enums/view.enum';
-import { Direction } from '../../libs/enums/comment.enum';
+import { CommentStatus, Direction } from '../../libs/enums/comment.enum';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
+import { CommentUpdate } from '../../libs/dto/comment/comment.update';
 
 @Injectable()
 export class MemberService {
@@ -238,7 +239,7 @@ export class MemberService {
 		console.log('executed');
 		const { _id, targetKey, modifier } = input;
 		const result = await this.memberModel
-			.findOneAndUpdate(_id, { $inc: { [targetKey]: modifier } }, { new: true })
+			.findByIdAndUpdate(_id, { $inc: { [targetKey]: modifier } }, { new: true })
 			.exec();
 		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 		return result;
