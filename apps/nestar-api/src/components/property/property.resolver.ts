@@ -18,7 +18,6 @@ import { WithoutGuard } from '../auth/guards/without.guard';
 import { Types } from 'mongoose';
 import { PropertyUpdate } from '../../libs/dto/property/property.update';
 import { AuthGuard } from '../auth/guards/auth.guard';
-import { log } from 'console';
 
 @Resolver()
 export class PropertyResolver {
@@ -86,7 +85,7 @@ export class PropertyResolver {
 	// ADMIN
 
 	@Roles(MemberType.ADMIN)
-	@UseGuards(AuthGuard)
+	@UseGuards(RolesGuard)
 	@Query((returns) => Properties)
 	public async getAllPropertiesByAdmin(
 		@Args('input') input: AllPropertiesInquiry,
