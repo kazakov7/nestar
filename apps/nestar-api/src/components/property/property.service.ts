@@ -23,6 +23,8 @@ import { PropertyUpdate } from '../../libs/dto/property/property.update';
 import moment from 'moment';
 import { Direction } from '../../libs/enums/comment.enum';
 import { lookupMember, shapeIntoMongoObjectId } from '../../libs/config';
+import { LikeGroup } from '../../libs/enums/like.enum';
+import { LikeService } from '../like/like.service';
 
 @Injectable()
 export class PropertyService {
@@ -30,7 +32,7 @@ export class PropertyService {
 		@InjectModel('Property')
 		private readonly propertyModel: Model<null>,
 		private memberService: MemberService,
-		private authService: AuthService,
+		private likeService: LikeService,
 		private viewService: ViewService,
 	) {}
 	public async createProperty(input: PropertyInput): Promise<Property> {
@@ -85,7 +87,12 @@ export class PropertyService {
 				targetProperty.propertyViews++;
 			}
 
-			// meLiked
+			const likeInput = {
+				memberId: memberId,
+				likeRefId: propertyId,
+				likeGroup: LikeGroup.PROPERTY,
+			};
+			targetProperty.meLiked = await this.likeService.checkLikeExistence(likeInput);
 		}
 
 		targetProperty.memberData = await this.memberService.getMember(
@@ -255,6 +262,34 @@ export class PropertyService {
 				return { [ele]: true };
 			});
 		}
+	}
+
+	public async likeTargetProperty(
+		memberId: Types.ObjectId,
+		likeRefId: Types.ObjectId,
+	): Promise<Property> {
+		const target = await this.propertyModel.findOne({
+			_id: likeRefId,
+			propertyStatus: PropertyStatus.ACTIVE,
+		});
+		if (!target) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+		const input = {
+			memberId: memberId,
+			likeRefId: likeRefId,
+			likeGroup: LikeGroup.PROPERTY,
+		};
+
+		// LIKE TOGGLE via Like modules
+		const modifier: number = await this.likeService.toggleLike(input);
+		const result = await this.propertyStatsEditor({
+			_id: likeRefId,
+			targetKey: 'propertyLikes',
+			modifier: modifier,
+		});
+
+		if (!result) throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
+		return result;
 	}
 
 	public async getAgentProperties(

@@ -20,6 +20,9 @@ import { StatisticModifier, T } from '../../libs/types/common';
 import { BoardArticleUpdate } from '../../libs/dto/board-article/board-article.update';
 import { shapeIntoMongoObjectId, lookupMember } from '../../libs/config';
 import { Direction } from '../../libs/enums/comment.enum';
+import { LikeGroup } from '../../libs/enums/like.enum';
+import { LikeModule } from '../like/like.module';
+import { LikeService } from '../like/like.service';
 
 @Injectable()
 export class BoardArticleService {
@@ -27,7 +30,7 @@ export class BoardArticleService {
 		@InjectModel('BoardArticle')
 		private readonly boardArticleModel: Model<BoardArticle>,
 		private memberService: MemberService,
-		// private authService: AuthService,
+		private likeService: LikeService,
 		private viewService: ViewService,
 	) {}
 
@@ -89,7 +92,12 @@ export class BoardArticleService {
 				targetBoardArticle.articleViews++;
 			}
 
-			// meLiked
+			const likeInput = {
+				memberId: memberId,
+				likeRefId: articleId,
+				likeGroup: LikeGroup.ARTICLE,
+			};
+			targetBoardArticle.meLiked = await this.likeService.checkLikeExistence(likeInput);
 		}
 
 		targetBoardArticle.memberData = await this.memberService.getMember(
@@ -140,6 +148,33 @@ export class BoardArticleService {
 			});
 		}
 
+		return result;
+	}
+	public async likeTargetArticle(
+		memberId: Types.ObjectId,
+		likeRefId: Types.ObjectId,
+	): Promise<BoardArticle> {
+		const target = await this.boardArticleModel.findOne({
+			_id: likeRefId,
+			articleStatus: BoardArticleStatus.ACTIVE,
+		});
+		if (!target) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+		const input = {
+			memberId: memberId,
+			likeRefId: likeRefId,
+			likeGroup: LikeGroup.ARTICLE,
+		};
+
+		// LIKE TOGGLE via Like modules
+		const modifier: number = await this.likeService.toggleLike(input);
+		const result = await this.boardArticleStatsEditor({
+			_id: likeRefId,
+			targetKey: 'articleLikes',
+			modifier: modifier,
+		});
+
+		if (!result) throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
 		return result;
 	}
 
