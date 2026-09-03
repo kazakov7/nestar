@@ -18,17 +18,19 @@ import { AuthService } from '../auth/auth.service';
 import { StatisticModifier, T } from '../../libs/types/common';
 import { ViewService } from '../view/view.service';
 import { ViewGroup } from '../../libs/enums/view.enum';
-import { CommentStatus, Direction } from '../../libs/enums/comment.enum';
+import { Direction } from '../../libs/enums/comment.enum';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
-import { CommentUpdate } from '../../libs/dto/comment/comment.update';
+
 import { LikeGroup } from '../../libs/enums/like.enum';
 import { LikeService } from '../like/like.service';
+import { Follower, Following, MeFollowed } from '../../libs/dto/follow/follow';
 
 @Injectable()
 export class MemberService {
 	constructor(
 		@InjectModel('Member')
 		private readonly memberModel: Model<Member>,
+		@InjectModel('Follow') private readonly followModel: Model<Follower | Following>,
 		private authService: AuthService,
 		private viewService: ViewService,
 		private likeService: LikeService,
@@ -128,9 +130,22 @@ export class MemberService {
 				likeGroup: LikeGroup.MEMBER,
 			};
 			result.meLiked = await this.likeService.checkLikeExistence(likeInput);
+			result.meFollowed = await this.checkSubscription(memberId, targetId);
 		}
 
 		return result;
+	}
+
+	private async checkSubscription(
+		followerId: Types.ObjectId,
+		followingId: Types.ObjectId,
+	): Promise<MeFollowed[]> {
+		const result = await this.followModel
+			.findOne({ followingId: followingId, followerId: followerId })
+			.exec();
+		return result
+			? [{ followerId: followerId, followingId: followingId, myFollowing: true }]
+			: [];
 	}
 
 	public async likeTargetMember(

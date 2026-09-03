@@ -1,15 +1,15 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { ObjectId } from 'mongoose';
+import { ObjectId, Types } from 'mongoose';
 import { Member, TotalCounter } from '../member/member';
 import { MeLiked } from '../like/like';
 
 @ObjectType()
 export class MeFollowed {
 	@Field(() => String)
-	followingId: ObjectId;
+	followingId: Types.ObjectId;
 
 	@Field(() => String)
-	followerId: ObjectId;
+	followerId: Types.ObjectId;
 
 	@Field(() => Boolean)
 	myFollowing: boolean;
@@ -21,10 +21,10 @@ export class Follower {
 	_id: ObjectId;
 
 	@Field(() => String)
-	followingId: ObjectId;
+	followingId: Types.ObjectId;
 
 	@Field(() => String)
-	followerId: ObjectId;
+	followerId: Types.ObjectId;
 
 	@Field(() => Date)
 	createdAt: Date;
@@ -50,10 +50,10 @@ export class Following {
 	_id: ObjectId;
 
 	@Field(() => String)
-	followingId: ObjectId;
+	followingId: Types.ObjectId;
 
 	@Field(() => String)
-	followerId: ObjectId;
+	followerId: Types.ObjectId;
 
 	@Field(() => Date)
 	createdAt: Date;
