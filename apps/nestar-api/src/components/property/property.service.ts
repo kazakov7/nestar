@@ -22,7 +22,11 @@ import { T, StatisticModifier } from '../../libs/types/common';
 import { PropertyUpdate } from '../../libs/dto/property/property.update';
 import moment from 'moment';
 import { Direction } from '../../libs/enums/comment.enum';
-import { lookupMember, shapeIntoMongoObjectId } from '../../libs/config';
+import {
+	lookUpAuthMemberLiked,
+	lookupMember,
+	shapeIntoMongoObjectId,
+} from '../../libs/config';
 import { LikeGroup } from '../../libs/enums/like.enum';
 import { LikeService } from '../like/like.service';
 
@@ -179,11 +183,11 @@ export class PropertyService {
 						list: [
 							{ $skip: (input.page - 1) * input.limit },
 							{ $limit: input.limit },
-							// meLiked
+							lookUpAuthMemberLiked(memberId),
 							lookupMember,
-							// {
-							// 	$unwind: '$memberdata',
-							// },
+							{
+								$unwind: '$memberData',
+							},
 						],
 						metaCounter: [{ $count: 'total' }],
 					},
@@ -193,6 +197,7 @@ export class PropertyService {
 
 		if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
+		console.log('dddd', result[0]);
 		return result[0];
 	}
 
