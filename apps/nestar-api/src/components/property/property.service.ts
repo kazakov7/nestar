@@ -9,6 +9,7 @@ import { Properties, Property } from '../../libs/dto/property/property';
 import {
 	AgentPropertiesInquiry,
 	AllPropertiesInquiry,
+	OrdinaryInquery,
 	PropertiesInquiry,
 	PropertyInput,
 } from '../../libs/dto/property/property.input';
@@ -29,6 +30,7 @@ import {
 } from '../../libs/config';
 import { LikeGroup } from '../../libs/enums/like.enum';
 import { LikeService } from '../like/like.service';
+import { InputType } from '@nestjs/graphql';
 
 @Injectable()
 export class PropertyService {
@@ -267,6 +269,20 @@ export class PropertyService {
 				return { [ele]: true };
 			});
 		}
+	}
+
+	public async getFavorites(
+		memberId: Types.ObjectId,
+		input: OrdinaryInquery,
+	): Promise<Properties> {
+		return this.likeService.getFavoriteProperties(memberId, input);
+	}
+
+	public async getVisited(
+		memberId: Types.ObjectId,
+		input: OrdinaryInquery,
+	): Promise<Properties> {
+		return this.viewService.getVisitedProperties(memberId, input);
 	}
 
 	public async likeTargetProperty(

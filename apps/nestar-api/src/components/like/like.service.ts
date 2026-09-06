@@ -1,11 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Like, MeLiked } from '../../libs/dto/like/like';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { LikeInput } from '../../libs/dto/like/like.input';
 import { InputType } from '@nestjs/graphql';
 import { Message } from '../../libs/enums/common.enum';
 import { T } from '../../libs/types/common';
+import { OrdinaryInquery } from '../../libs/dto/property/property.input';
+import { promises } from 'dns';
+import { Properties } from '../../libs/dto/property/property';
+import { LikeGroup } from '../../libs/enums/like.enum';
+import { lookupFavorite } from '../../libs/config';
 
 @Injectable()
 export class LikeService {
@@ -45,5 +50,45 @@ export class LikeService {
 			.exec();
 		console.log(result);
 		return result ? [{ memberId: memberId, likeRefId: likeRefId, myFavorite: true }] : [];
+	}
+
+	public async getFavoriteProperties(
+		memberId: Types.ObjectId,
+		input: OrdinaryInquery,
+	): Promise<Properties> {
+		const { page, limit } = input;
+		const match: T = { likeGroup: LikeGroup.PROPERTY, memberId: memberId };
+
+		const data: T = await this.likeModel
+			.aggregate([
+				{ $match: match },
+				{ $sort: { updatedAt: -1 } },
+				{
+					$lookup: {
+						from: 'properties',
+						localField: 'likeRefId',
+						foreignField: '_id',
+						as: 'favoriteProperty',
+					},
+				},
+				{ $unwind: '$favoriteProperty' },
+				{
+					$facet: {
+						list: [
+							{ $skip: (page - 1) * limit },
+							{ $limit: limit },
+							lookupFavorite,
+							{ $unwind: '$favoriteProperty.memberData' },
+						],
+						metaCounter: [{ $count: 'total' }],
+					},
+				},
+			])
+			.exec();
+
+		const result: Properties = { list: [], metaCounter: data[0].metaCounter };
+		result.list = data[0].list.map((ele) => ele.favoriteProperty);
+
+		return result;
 	}
 }
