@@ -221,19 +221,19 @@ export class PropertyService {
 			match.memberId = shapeIntoMongoObjectId(memberId);
 		}
 
-		if (locationList) {
+		if (locationList && locationList.length) {
 			match.propertyLocation = { $in: locationList };
 		}
 
-		if (roomsList) {
+		if (roomsList && roomsList.length) {
 			match.propertyRooms = { $in: roomsList };
 		}
 
-		if (bedsList) {
+		if (bedsList && bedsList.length) {
 			match.propertyBeds = { $in: bedsList };
 		}
 
-		if (typeList) {
+		if (typeList && typeList.length) {
 			match.propertyType = { $in: typeList };
 		}
 
